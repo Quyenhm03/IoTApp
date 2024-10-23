@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView
+        android:id="@+id/txtIdHis"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:text="1"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtDeviceHis"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="4"
+        android:text="Fan"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtActionHis"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3.5"
+        android:text="On"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtTimeHis"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="5"
+        android:text="9:00-10:00"
+        android:padding="8dp"
+        android:gravity="center" />
+</LinearLayout>

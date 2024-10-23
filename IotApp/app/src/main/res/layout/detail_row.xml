@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView
+        android:id="@+id/txtIdDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:text="1"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtTempDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:text="32"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtHumiDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:text="60"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtLightDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:text="60"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtTimeDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="4"
+        android:text="9:00-10:00"
+        android:padding="8dp"
+        android:gravity="center" />
+</LinearLayout>
