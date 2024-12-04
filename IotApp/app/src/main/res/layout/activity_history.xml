@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:text="Action History"
                 android:textColor="@color/white"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
@@ -73,6 +73,7 @@
                         android:layout_height="wrap_content"
                         android:hint="Search for time ..."
                         android:textSize="15sp"
+                        android:textColor="#373636"
                         android:backgroundTint="@android:color/transparent"
                         android:layout_toRightOf="@+id/btnSearchHis"/>
 
@@ -107,6 +108,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
                         android:text="ID"
+                        android:textColor="#373636"
                         android:textStyle="bold"
                         android:padding="8dp"
                         android:gravity="center" />
@@ -116,6 +118,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="4"
                         android:text="Device"
+                        android:textColor="#373636"
                         android:textStyle="bold"
                         android:padding="8dp"
                         android:gravity="center" />
@@ -127,6 +130,7 @@
                         android:gravity="center"
                         android:padding="8dp"
                         android:text="Action"
+                        android:textColor="#373636"
                         android:textStyle="bold" />
 
                     <TextView
@@ -134,6 +138,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="5"
                         android:text="Time"
+                        android:textColor="#373636"
                         android:textStyle="bold"
                         android:gravity="center"
                         android:padding="8dp" />

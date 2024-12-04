@@ -6,7 +6,7 @@ const options = {
     password: 'b21dccn639',  
 };
 
-const client = mqtt.connect('mqtt:192.168.1.9:1993', options)
+const client = mqtt.connect('mqtt:192.168.189.2:1993', options)
 
 client.on('connect', () => {
     console.log('Connected to MQTT broker');
@@ -17,11 +17,11 @@ client.on('connect', () => {
         }
     });
 
-    client.subscribe('actionhistory', (err) => {
-        if (!err) {
-            console.log('Subscribed to topic: actionhistory');
-        }
-    });
+    // client.subscribe('actionhistory', (err) => {
+    //     if (!err) {
+    //         console.log('Subscribed to topic: actionhistory');
+    //     }
+    // });
 });
 
 client.on('message', async (topic, message) => {
@@ -50,7 +50,7 @@ client.on('message', async (topic, message) => {
         };
 
         await createDataSensor({ body: data }, res);
-    }
+    } 
 });
 
 client.on('error', (err) => {

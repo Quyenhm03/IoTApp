@@ -1,15 +1,17 @@
 package com.example.iotapp;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 import com.example.iotapp.Model.DataSensor;
 
@@ -27,10 +29,16 @@ public class DataSensorAdapter extends RecyclerView.Adapter<DataSensorAdapter.Da
         notifyDataSetChanged();
     }
 
+    public void addData(List<DataSensor> list) {
+        int startPosition = listDataSensor.size();
+        listDataSensor.addAll(list);
+        notifyItemRangeInserted(startPosition, listDataSensor.size());
+    }
+
     @NonNull
     @Override
     public DataSensorViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.detail_row, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.datasensor_row, parent, false);
         return new DataSensorViewHolder(view);
     }
 
@@ -46,6 +54,17 @@ public class DataSensorAdapter extends RecyclerView.Adapter<DataSensorAdapter.Da
         holder.txtHumiDetail.setText(String.valueOf(row.getHumid()));
         holder.txtLightDetail.setText(String.valueOf(row.getLight()));
         holder.txtTimeDetail.setText(row.getTime());
+
+        holder.txtTimeDetail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Time", row.getTime());
+                clipboard.setPrimaryClip(clip);
+
+                Toast.makeText(context, "Copy successful!", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

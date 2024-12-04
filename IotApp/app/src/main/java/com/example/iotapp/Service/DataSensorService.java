@@ -23,7 +23,7 @@ import java.time.ZonedDateTime;
 public class DataSensorService {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public List<DataSensor> getDataSensor(String API) {
+    public List<DataSensor> getDataSensor(String API, int page) {
         List<DataSensor> list = new ArrayList<>();
         HttpURLConnection conn = null;
 
@@ -51,18 +51,60 @@ public class DataSensorService {
 
                 for (int i = 0; i < dataNode.size(); i++) {
                     JsonNode sensorNode = dataNode.get(i);
-                    double temp = sensorNode.get("temp").asDouble();
-                    double humid = sensorNode.get("humid").asDouble();
-                    double light = sensorNode.get("light").asDouble();
+                    double temp = Double.parseDouble(sensorNode.get("temp").asText());
+                    double humid = Double.parseDouble(sensorNode.get("humid").asText());
+                    double light = Double.parseDouble(sensorNode.get("light").asText());
                     String time = sensorNode.get("time").asText();
 
-                    Instant instant = Instant.parse(time);
+                    list.add(new DataSensor(i + 1 + page*50, temp, humid, light, time));
+                }
+            }
 
-                    ZonedDateTime localDateTime = instant.atZone(ZoneId.systemDefault());
+        } catch (Exception e) {
+            Log.e("DataSensorService", "Error: ", e);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+        return list;
+    }
 
-                    String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public List<DataSensor> getTenDataSensor1(String API) {
+        List<DataSensor> list = new ArrayList<>();
+        HttpURLConnection conn = null;
 
-                    list.add(new DataSensor(i + 1, temp, humid, light, formattedTime));
+        try {
+            URL url = new URL(API);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            // Kiểm tra mã phản hồi
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+
+                // Đọc phản hồi từ API
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                // Phân tích JSON
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(response.toString());
+                JsonNode dataNode = jsonNode.get("data");
+
+                for (int i = 0; i < dataNode.size(); i++) {
+                    JsonNode sensorNode = dataNode.get(i);
+                    double temp = Double.parseDouble(sensorNode.get("temp").asText());
+                    double humid = Double.parseDouble(sensorNode.get("humid").asText());
+                    double light = Double.parseDouble(sensorNode.get("light").asText());
+                    String time = sensorNode.get("time").asText();
+
+                    list.add(new DataSensor(i + 1, temp, humid, light, time));
                 }
             }
 
@@ -106,18 +148,12 @@ public class DataSensorService {
 
                 for (int i = 0; i < dataNode.size(); i++) {
                     JsonNode sensorNode = dataNode.get(i);
-                    double temp = sensorNode.get("temp").asDouble();
-                    double humid = sensorNode.get("humid").asDouble();
-                    double light = sensorNode.get("light").asDouble();
+                    double temp = Double.parseDouble(sensorNode.get("temp").asText());
+                    double humid = Double.parseDouble(sensorNode.get("humid").asText());
+                    double light = Double.parseDouble(sensorNode.get("light").asText());
                     String time = sensorNode.get("time").asText();
 
-                    Instant instant = Instant.parse(time);
-
-                    ZonedDateTime localDateTime = instant.atZone(ZoneId.systemDefault());
-
-                    String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-                    list.add(new DataSensor(i + 1, temp, humid, light, formattedTime));
+                    list.add(new DataSensor(i + 1, temp, humid, light, time));
                 }
             }
 

@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,6 +29,8 @@ public class ActionHistoryActivity extends BaseActivity{
     private TextView txtHistory;
     private Button btnSearchHis;
     private List<ActionHistory> list = new ArrayList<>();
+    private int curPage = 0;
+    private boolean isSearch = false, isLoading = false;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -47,15 +50,39 @@ public class ActionHistoryActivity extends BaseActivity{
         rcvHistory.setVerticalScrollBarEnabled(false);
         rcvHistory.setAdapter(actionHistoryAdapter);
 
-        loadData();
+        rcvHistory.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null) {
+                    int totalItemCount = layoutManager.getItemCount();
+                    int lastVisibleItem = layoutManager.findLastVisibleItemPosition();
+
+                    if (!isSearch && !isLoading && lastVisibleItem >= totalItemCount - 1) {
+                        isLoading = true;
+                        curPage++;
+                        loadData(curPage);
+                    }
+
+                }
+            }
+        });
+
+        loadData(curPage);
         
         btnSearchHis = findViewById(R.id.btnSearchHis);
         btnSearchHis.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                isSearch = true;
                 EditText edtSearchHis = findViewById(R.id.edtSearchHis);
                 String timeSearch = edtSearchHis.getText().toString();
-                if (!timeSearch.matches("\\d{4}-\\d{2}-\\d{2}") && !timeSearch.matches("\\d{2}:\\d{2}:\\d{2}") && !timeSearch.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+                if (! timeSearch.matches(".*\\d{1,2}-\\d{2}.*") && ! timeSearch.matches(".*\\d{1,2}-\\d{4}.*") &&
+                        !timeSearch.matches("\\d{4}-\\d{2}-\\d{2}") &&  ! timeSearch.matches(".*\\d{1,2}.*") &&
+                        !timeSearch.matches("\\d{2}:\\d{2}:\\d{2}") &&  ! timeSearch.matches(".*\\d{1,2}:\\d{2}.*") && !timeSearch.matches(".*\\d{2}-\\d{4}.*") &&
+                        !timeSearch.matches(".*\\d{2}-\\d{2}.*") && !timeSearch.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
                     Toast.makeText(ActionHistoryActivity.this, "Please enter the correct date/time format!", Toast.LENGTH_SHORT).show();
                 } else {
                     solveSearchHis(timeSearch);
@@ -73,18 +100,24 @@ public class ActionHistoryActivity extends BaseActivity{
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void loadData() {
+    private void loadData(int page) {
         new Thread(() -> {
             ActionHistoryService actionHistoryService = new ActionHistoryService();
-            list = actionHistoryService.getAllActionHistory();
+            String API_GetData = "http://192.168.189.2:8000/actionhistory?page=" + page;
+            list = actionHistoryService.getActionHistory(API_GetData, page);
 
             runOnUiThread(() -> {
                 if(list != null && !list.isEmpty()) {
-                    actionHistoryAdapter.setData(list);
+                    if(page == 0) {
+                        actionHistoryAdapter.setData(list);
+                    } else {
+                        actionHistoryAdapter.addData(list);
+                    }
                 } else {
-                    Log.d("Error", "No data.");
+                    Log.d("error", "No data found or failed to retrieve data.");
                 }
             });
+            isLoading = false;
         }).start();
     }
 
@@ -97,8 +130,11 @@ public class ActionHistoryActivity extends BaseActivity{
             runOnUiThread(() -> {
                 if (listSearch != null && !listSearch.isEmpty()) {
                     actionHistoryAdapter.setData(listSearch);
+                    Toast.makeText(ActionHistoryActivity.this, "Successful search!", Toast.LENGTH_SHORT).show();
                 } else {
-                    Log.d("error", "No data found or failed to retrieve data.");
+                    actionHistoryAdapter.setData(listSearch);
+                    Toast.makeText(ActionHistoryActivity.this, "No data found or failed to retrieve data!", Toast.LENGTH_SHORT).show();
+                    Log.d("Error", "No data.");
                 }
             });
         }).start();

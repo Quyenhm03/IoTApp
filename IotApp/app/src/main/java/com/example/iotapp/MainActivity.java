@@ -43,8 +43,8 @@ public class MainActivity extends BaseActivity {
 
     private LineChart lineChart;
     private TextView txtHome;
-    private Switch swtFan, swtLight, swtConditioner;
-    private ImageView imgFan, imgLight, imgConditioner;
+    private Switch swtFan, swtLight, swtConditioner, swtCurtain, swtHumidifier, swtHeater;
+    private ImageView imgFan, imgLight, imgConditioner, imgCurtain, imgHumidifier, imgHeater;
     private List<DataSensor> list = new ArrayList<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private double curTemp, curHumid, curLight;
@@ -135,27 +135,27 @@ public class MainActivity extends BaseActivity {
 
     private List<Entry> tempValues() {
         ArrayList<Entry> tempValue = new ArrayList<>();
-        int start = list.size()-10;
-        for(int i = start; i < list.size(); i++) {
-            tempValue.add(new Entry(i-start, (float)list.get(i).getTemp()));
+        int id = 0;
+        for(int i = list.size()-1; i >= 0; i--) {
+            tempValue.add(new Entry(id++, (float)list.get(i).getTemp()));
         }
         return tempValue;
     }
 
     private List<Entry> humidValues() {
         ArrayList<Entry> humidValue = new ArrayList<>();
-        int start = list.size()-10;
-        for(int i = start; i < list.size(); i++) {
-            humidValue.add(new Entry(i-start, (float)list.get(i).getHumid()));
+        int id = 0;
+        for(int i = list.size()-1; i >= 0; i--) {
+            humidValue.add(new Entry(id++, (float)list.get(i).getHumid()));
         }
         return humidValue;
     }
 
     private List<Entry> lightValues() {
         ArrayList<Entry> lightValue = new ArrayList<>();
-        int start = list.size()-10;
-        for(int i = start; i < list.size(); i++) {
-            lightValue.add(new Entry(i-start, (float)list.get(i).getLight()));
+        int id = 0;
+        for(int i = list.size()-1; i >= 0; i--) {
+            lightValue.add(new Entry(id++, (float)list.get(i).getLight()));
         }
         return lightValue;
     }
@@ -165,11 +165,12 @@ public class MainActivity extends BaseActivity {
         lineChart.getData().getDataSetByIndex(1).clear();
         lineChart.getData().getDataSetByIndex(2).clear();
 
-        int start = list.size() - 10;
-        for (int i = start; i < list.size(); i++) {
-            ((LineDataSet) lineChart.getData().getDataSetByIndex(0)).addEntry(new Entry(i - start, (float) list.get(i).getTemp()));
-            ((LineDataSet) lineChart.getData().getDataSetByIndex(1)).addEntry(new Entry(i - start, (float) list.get(i).getHumid()));
-            ((LineDataSet) lineChart.getData().getDataSetByIndex(2)).addEntry(new Entry(i - start, (float) list.get(i).getLight()));
+        int id = 0;
+        for (int i = list.size() - 1; i >= 0; i--) {
+            ((LineDataSet) lineChart.getData().getDataSetByIndex(0)).addEntry(new Entry(id, (float) list.get(i).getTemp()));
+            ((LineDataSet) lineChart.getData().getDataSetByIndex(1)).addEntry(new Entry(id, (float) list.get(i).getHumid()));
+            ((LineDataSet) lineChart.getData().getDataSetByIndex(2)).addEntry(new Entry(id, (float) list.get(i).getLight()));
+            id++;
         }
 
         lineChart.notifyDataSetChanged();
@@ -190,13 +191,14 @@ public class MainActivity extends BaseActivity {
 
     private void stopDataFetching() {
         handler.removeCallbacks(runnable);
+        executorService.shutdown();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void solveGetData() {
         new Thread(() -> {
             DataSensorService dataSensorService = new DataSensorService();
-            list = dataSensorService.getDataSensor("http://192.168.1.9:8000/datasensor");
+            list = dataSensorService.getTenDataSensor1("http://192.168.189.2:8000/datasensor/getTen");
 
             runOnUiThread(() -> {
                 if (list != null && !list.isEmpty()) {
@@ -205,9 +207,9 @@ public class MainActivity extends BaseActivity {
                         isStart = false;
                     } else
                         updateChart();
-                    curTemp = list.get(list.size() - 1).getTemp();
-                    curHumid = list.get(list.size() - 1).getHumid();
-                    curLight = list.get(list.size() - 1).getLight();
+                    curTemp = list.get(0).getTemp();
+                    curHumid = list.get(0).getHumid();
+                    curLight = list.get(0).getLight();
                     solveCurrentFigure();
 
                     Log.d("Get datasensor", "success");
@@ -228,6 +230,9 @@ public class MainActivity extends BaseActivity {
         imgFan = findViewById(R.id.imgFan);
         imgLight = findViewById(R.id.imgLight);
         imgConditioner = findViewById(R.id.imgConditioner);
+        imgCurtain = findViewById(R.id.imgCurtain);
+        imgHumidifier = findViewById(R.id.imgHumidifier);
+        imgHeater = findViewById(R.id.imgHeater);
 
         RotateAnimation rotateAnimation = new RotateAnimation(0, 360,
                 Animation.RELATIVE_TO_SELF, 0.5f,
@@ -240,6 +245,9 @@ public class MainActivity extends BaseActivity {
         swtFan = findViewById(R.id.switch_fan);
         swtLight = findViewById(R.id.switch_light);
         swtConditioner = findViewById(R.id.switch_conditioner);
+        swtCurtain = findViewById(R.id.switch_curtain);
+        swtHumidifier = findViewById(R.id.switch_humidifier);
+        swtHeater = findViewById(R.id.switch_heater);
 
         loadSwitchStates();
 
@@ -307,6 +315,69 @@ public class MainActivity extends BaseActivity {
                 solvePostActionHistory(new ActionHistory("Conditioner", "Off", currentTime));
             }
         });
+
+        swtCurtain.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            saveSwitchState("curtain", isChecked);
+
+            if (isChecked) {
+                imgCurtain.setImageResource(R.drawable.curtain_open);
+                Date now = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String currentTime = sdf.format(now);
+
+                solvePostActionHistory(new ActionHistory("Curtain", "Open", currentTime));
+            } else {
+                imgCurtain.setImageResource(R.drawable.curtain_close);
+
+                Date now = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String currentTime = sdf.format(now);
+
+                solvePostActionHistory(new ActionHistory("Curtain", "Close", currentTime));
+            }
+        });
+
+        swtHumidifier.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            saveSwitchState("humidifier", isChecked);
+
+            if (isChecked) {
+                imgHumidifier.setImageResource(R.drawable.humidifier_on);
+                Date now = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String currentTime = sdf.format(now);
+
+                solvePostActionHistory(new ActionHistory("Humidifier", "On", currentTime));
+            } else {
+                imgHumidifier.setImageResource(R.drawable.humidifier_off);
+
+                Date now = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String currentTime = sdf.format(now);
+
+                solvePostActionHistory(new ActionHistory("Humidifier", "Off", currentTime));
+            }
+        });
+
+        swtHeater.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            saveSwitchState("heater", isChecked);
+
+            if (isChecked) {
+                imgHeater.setImageResource(R.drawable.heater_on);
+                Date now = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String currentTime = sdf.format(now);
+
+                solvePostActionHistory(new ActionHistory("Heater", "On", currentTime));
+            } else {
+                imgHeater.setImageResource(R.drawable.heater_off);
+
+                Date now = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String currentTime = sdf.format(now);
+
+                solvePostActionHistory(new ActionHistory("Heater", "Off", currentTime));
+            }
+        });
     }
 
     private void loadSwitchStates() {
@@ -339,6 +410,27 @@ public class MainActivity extends BaseActivity {
             imgConditioner.setImageResource(R.drawable.conditioner_on);
         } else {
             imgConditioner.setImageResource(R.drawable.conditioner);
+        }
+
+        swtCurtain.setChecked(sharedPreferences.getBoolean("curtain", false));
+        if (swtCurtain.isChecked()) {
+            imgCurtain.setImageResource(R.drawable.curtain_open);
+        } else {
+            imgCurtain.setImageResource(R.drawable.curtain_close);
+        }
+
+        swtHumidifier.setChecked(sharedPreferences.getBoolean("humidifier", false));
+        if (swtHumidifier.isChecked()) {
+            imgHumidifier.setImageResource(R.drawable.humidifier_on);
+        } else {
+            imgHumidifier.setImageResource(R.drawable.humidifier_off);
+        }
+
+        swtHeater.setChecked(sharedPreferences.getBoolean("heater", false));
+        if (swtHeater.isChecked()) {
+            imgHeater.setImageResource(R.drawable.heater_on);
+        } else {
+            imgHeater.setImageResource(R.drawable.heater_off);
         }
     }
 
@@ -393,6 +485,8 @@ public class MainActivity extends BaseActivity {
             txtStateTemp.setTypeface(null, Typeface.BOLD);
         } else {
             txtStateTemp.setText("Normal");
+            txtStateTemp.setTextColor(Color.parseColor("#4E4848"));
+            txtStateTemp.setTypeface(null, Typeface.NORMAL);
         }
 
         // Xác định trạng thái độ ẩm
@@ -400,18 +494,16 @@ public class MainActivity extends BaseActivity {
             txtStateHumid.setText("Low");
             txtStateHumid.setTextColor(Color.RED);
             txtStateHumid.setTypeface(null, Typeface.BOLD);
-           // stopHumidityBlinking(progressHumidity);
         } else if (curHumid > 60) {
             txtStateHumid.setText("High");
             txtStateHumid.setTextColor(Color.RED);
             txtStateHumid.setTypeface(null, Typeface.BOLD);
-            //startHumidityBlinking(progressHumidity);
         } else {
             txtStateHumid.setText("Normal");
-            //stopHumidityBlinking(progressHumidity);
+            txtStateHumid.setTextColor(Color.parseColor("#4E4848"));
+            txtStateHumid.setTypeface(null, Typeface.NORMAL);
         }
 
-        // Xác định trạng thái ánh sáng
         if (curLight < 100) {
             txtStateLight.setText("Low");
             txtStateLight.setTextColor(Color.RED);
@@ -422,33 +514,10 @@ public class MainActivity extends BaseActivity {
             txtStateLight.setTypeface(null, Typeface.BOLD);
         } else {
             txtStateLight.setText("Normal");
+            txtStateLight.setTextColor(Color.parseColor("#4E4848"));
+            txtStateLight.setTypeface(null, Typeface.NORMAL);
         }
     }
-
-//    private boolean isBlinking = false;
-//
-//    private void startHumidityBlinking(ProgressBar progressHumidity) {
-//        if (!isBlinking) {
-//            isBlinking = true;
-//            handler.post(blinkRunnable);
-//        }
-//    }
-//
-//    private void stopHumidityBlinking(ProgressBar progressHumidity) {
-//        isBlinking = false;
-//        handler.removeCallbacks(blinkRunnable);
-//        progressHumidity.setVisibility(View.VISIBLE); // Đảm bảo ProgressBar hiển thị
-//    }
-//
-//    private Runnable blinkRunnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            if (isBlinking) {
-//                progressHumidity.setVisibility(progressHumidity.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
-//                handler.postDelayed(this, 500);
-//            }
-//        }
-//    };
 
     @Override
     protected void onStop() {

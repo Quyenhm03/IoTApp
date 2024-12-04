@@ -22,15 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ActionHistoryService {
-    private static final String API_URL = "http://192.168.1.9:8000/actionhistory";
+    private static final String API_URL = "http://192.168.189.2:8000/actionhistory";
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public List<ActionHistory> getAllActionHistory() {
+    public List<ActionHistory> getActionHistory(String API, int page) {
         List<ActionHistory> list = new ArrayList<>();
         HttpURLConnection conn = null;
 
         try {
-            URL url = new URL(API_URL);
+            URL url = new URL(API);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
 
@@ -54,11 +54,7 @@ public class ActionHistoryService {
                     String action = actionHistory.get("action").asText();
                     String time = actionHistory.get("time").asText();
 
-                    Instant instant = Instant.parse(time);
-                    ZonedDateTime localDateTime = instant.atZone(ZoneId.systemDefault());
-                    String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-                    list.add(new ActionHistory(i+1, device, action, formattedTime));
+                    list.add(new ActionHistory(i+1+page*50, device, action, time));
                 }
             }
 
@@ -121,7 +117,7 @@ public class ActionHistoryService {
         HttpURLConnection conn = null;
 
         try {
-            String API_Search = "http://192.168.1.9:8000/actionhistory/searchTime?time=" + input;
+            String API_Search = "http://192.168.189.2:8000/actionhistory/searchTime?time=" + input;
             URL url = new URL(API_Search);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -146,11 +142,7 @@ public class ActionHistoryService {
                     String action = actionHistory.get("action").asText();
                     String time = actionHistory.get("time").asText();
 
-                    Instant instant = Instant.parse(time);
-                    ZonedDateTime localDateTime = instant.atZone(ZoneId.systemDefault());
-                    String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-                    list.add(new ActionHistory(i+1, device, action, formattedTime));
+                    list.add(new ActionHistory(i+1, device, action, time));
                 }
             }
 

@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:text="Data Sensor"
                 android:textColor="@color/white"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
@@ -73,6 +73,7 @@
                         android:layout_height="match_parent"
                         android:hint="Search here ..."
                         android:textSize="15sp"
+                        android:textColor="#373636"
                         android:backgroundTint="@android:color/transparent"
                         android:layout_toRightOf="@+id/btnSearch"/>
 
@@ -128,8 +129,9 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
+                        android:layout_weight="1.7"
                         android:text="ID"
+                        android:textColor="#373636"
                         android:textStyle="bold"
                         android:padding="8dp"
                         android:gravity="center" />
@@ -145,6 +147,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="4.5"
                             android:text="Tempt (℃)"
+                            android:textColor="#373636"
                             android:textStyle="bold"
                             android:padding="8dp"
                             android:gravity="center" />
@@ -170,6 +173,7 @@
                             android:layout_weight="4.5"
                             android:gravity="center"
                             android:padding="8dp"
+                            android:textColor="#373636"
                             android:text="Humid (%)"
                             android:textStyle="bold" />
 
@@ -193,6 +197,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="4.5"
                             android:text="Light (lux)"
+                            android:textColor="#373636"
                             android:textStyle="bold"
                             android:gravity="center"
                             android:padding="8dp" />
@@ -217,6 +222,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="5dp"
                             android:text="Time"
+                            android:textColor="#373636"
                             android:textStyle="bold"
                             android:gravity="center"
                             android:padding="8dp" />

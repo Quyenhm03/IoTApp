@@ -3,19 +3,19 @@ import mongoose from 'mongoose'
 const DataSensorSchema = new mongoose.Schema(
     {
         temp: {
-            type: Number,
+            type: String,
             required: true,
         }, 
         humid: {
-            type: Number,
+            type: String,
             required: true,
         },
         light: {
-            type: Number,
+            type: String,
             required: true,
         },
         time: {
-            type: Date,
+            type: String,
             required: true,
         }
     }

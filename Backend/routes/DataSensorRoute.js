@@ -1,12 +1,11 @@
 import express from 'express';
 import {
     createDataSensor,
-    getAllData,
+    getDataSensor,
     getTempBySearch,
     getHumidBySearch,
     getLightBySearch,
     getTimeBySearch,
-    countHumidHigh,
     sortIncreaseTemp,
     sortDecreaseTemp,
     sortIncreaseHumid,
@@ -14,8 +13,10 @@ import {
     sortIncreaseLight,
     sortDecreaseLight,
     sortIncreaseTime,
-    sortDecreaseTime
+    sortDecreaseTime,
+    getTenDataSensor
 } from '../controllers/DataSensorController.js';
+
 
 const router = express.Router();
 
@@ -33,14 +34,13 @@ const router = express.Router();
  *             type: object
  *             properties:
  *               temp:
- *                 type: number
- *               humid:
- *                 type: number
- *               light:
- *                 type: number
- *               time:
  *                 type: string
- *                 format: date-time
+ *               humid:
+ *                 type: string
+ *               light:
+ *                 type: string
+ *               time:
+ *                 type: string           
  *     responses:
  *       200:
  *         description: Successfully created
@@ -62,10 +62,17 @@ router.post('/', createDataSensor);
 
 /**
  * @swagger
- * /datasensor/:
+ * /datasensor:
  *   get:
- *     summary: Get all data sensors
- *     description: Retrieves all data sensor entries.
+ *     summary: Get data sensor
+ *     description: Returns a list of data sensor, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -87,7 +94,7 @@ router.post('/', createDataSensor);
  *       404:
  *         description: Not found
  */
-router.get('/', getAllData);
+router.get('/', getDataSensor);
 
 /**
  * @swagger
@@ -207,7 +214,7 @@ router.get('/searchLight', getLightBySearch);
  *       - name: time
  *         in: query
  *         required: true
- *         description: Time to search for (can be full date or time).
+ *         description: Time to search for .
  *         schema:
  *           type: string
  *     responses:
@@ -238,7 +245,14 @@ router.get('/searchTime', getTimeBySearch);
  * /datasensor/sortTemp/increase:
  *   get:
  *     summary: Sort data by temperature in increasing order
- *     description: Retrieves data sensor entries sorted by temperature in increasing order.
+ *     description: Retrieves data sensor entries sorted by temperature in increasing order, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -267,7 +281,14 @@ router.get('/sortTemp/increase', sortIncreaseTemp);
  * /datasensor/sortTemp/decrease:
  *   get:
  *     summary: Sort data by temperature in decreasing order
- *     description: Retrieves data sensor entries sorted by temperature in decreasing order.
+ *     description: Retrieves data sensor entries sorted by temperature in decreasing order, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -297,6 +318,13 @@ router.get('/sortTemp/decrease', sortDecreaseTemp);
  *   get:
  *     summary: Sort data by humidity in increasing order
  *     description: Retrieves data sensor entries sorted by humidity in increasing order.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -325,7 +353,14 @@ router.get('/sortHumid/increase', sortIncreaseHumid);
  * /datasensor/sortHumid/decrease:
  *   get:
  *     summary: Sort data by humidity in decreasing order
- *     description: Retrieves data sensor entries sorted by humidity in decreasing order.
+ *     description: Retrieves data sensor entries sorted by humidity in decreasing order, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -354,7 +389,14 @@ router.get('/sortHumid/decrease', sortDecreaseHumid);
  * /datasensor/sortLight/increase:
  *   get:
  *     summary: Sort data by light in increasing order
- *     description: Retrieves data sensor entries sorted by light in increasing order.
+ *     description: Retrieves data sensor entries sorted by light in increasing order, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -383,7 +425,14 @@ router.get('/sortLight/increase', sortIncreaseLight);
  * /datasensor/sortLight/decrease:
  *   get:
  *     summary: Sort data by light in decreasing order
- *     description: Retrieves data sensor entries sorted by light in decreasing order.
+ *     description: Retrieves data sensor entries sorted by light in decreasing order, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -412,7 +461,14 @@ router.get('/sortLight/decrease', sortDecreaseLight);
  * /datasensor/sortTime/increase:
  *   get:
  *     summary: Sort data by time in increasing order
- *     description: Retrieves data sensor entries sorted by time in increasing order.
+ *     description: Retrieves data sensor entries sorted by time in increasing order, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -441,7 +497,14 @@ router.get('/sortTime/increase', sortIncreaseTime);
  * /datasensor/sortTime/decrease:
  *   get:
  *     summary: Sort data by time in decreasing order
- *     description: Retrieves data sensor entries sorted by time in decreasing order.
+ *     description: Retrieves data sensor entries sorted by time in decreasing order, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Successfully retrieved
@@ -465,29 +528,6 @@ router.get('/sortTime/increase', sortIncreaseTime);
  */
 router.get('/sortTime/decrease', sortDecreaseTime);
 
-/**
- * @swagger
- * /datasensor/countHumidHigh:
- *   get:
- *     summary: Count high humidity entries
- *     description: Counts the number of data sensor entries with humidity greater than 80% for the current day.
- *     responses:
- *       200:
- *         description: Successfully counted
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 count:
- *                   type: integer
- *                 message:
- *                   type: string
- *       404:
- *         description: Not found
- */
-router.get('/countHumidHigh', countHumidHigh);
+router.get('/getTen', getTenDataSensor);
 
 export default router;

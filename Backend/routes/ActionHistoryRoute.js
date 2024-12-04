@@ -1,5 +1,5 @@
 import express from 'express';
-import { createActionHistory, getAllHistory, getTimeBySearch, warningHigh } from '../controllers/ActionHistoryController.js';
+import { createActionHistory, getTimeBySearch, getActionHistory } from '../controllers/ActionHistoryController.js';
 
 const router = express.Router();
 
@@ -20,6 +20,8 @@ const router = express.Router();
  *                 type: string
  *               action:
  *                 type: string
+ *               time:
+ *                 type: string             
  *     responses:
  *       200:
  *         description: Successfully created
@@ -41,69 +43,6 @@ router.post('/', createActionHistory);
 
 /**
  * @swagger
- * /actionhistory/warningHigh:
- *   post:
- *     summary: Send warning message
- *     description: Sends a warning message to MQTT.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               message:
- *                 type: string
- *     responses:
- *       200:
- *         description: Message sent successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: string
- *       500:
- *         description: Failed to send message
- */
-router.post('/warningHigh', warningHigh);
-
-/**
- * @swagger
- * /actionhistory:
- *   get:
- *     summary: Get all action histories
- *     description: Retrieves all action history entries.
- *     responses:
- *       200:
- *         description: Successfully retrieved
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 count:
- *                   type: integer
- *                 message:
- *                   type: string
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *       404:
- *         description: Not found
- */
-router.get('/', getAllHistory);
-
-/**
- * @swagger
  * /actionhistory/searchTime:
  *   get:
  *     summary: Search action histories by time
@@ -112,7 +51,7 @@ router.get('/', getAllHistory);
  *       - name: time
  *         in: query
  *         required: true
- *         description: The time to search for (can be full date, date, or time).
+ *         description: The time to search for .
  *         schema:
  *           type: string
  *     responses:
@@ -137,5 +76,41 @@ router.get('/', getAllHistory);
  *         description: Not found
  */
 router.get('/searchTime', getTimeBySearch);
+
+/**
+ * @swagger
+ * /actionhistory:
+ *   get:
+ *     summary: Get action history
+ *     description: Returns a list of action history for devices, paginated with 50 records per page.
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: true
+ *         description: Page number
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       404:
+ *         description: Not found
+ */
+router.get('/', getActionHistory);
 
 export default router;

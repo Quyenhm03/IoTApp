@@ -14,6 +14,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,8 +23,6 @@ import com.example.iotapp.Model.DataSensor;
 import com.example.iotapp.Service.DataSensorService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 public class DataSensorActivity extends BaseActivity {
@@ -36,12 +35,16 @@ public class DataSensorActivity extends BaseActivity {
     private Button btnSearchData, btnSortTemp, btnSortHumid, btnSortLight, btnSortTime;
     private List<DataSensor> list;
     private List<String> options;
+    private int curPage = 0;
+    private boolean isSearch = false, isSort = false;
+    private boolean isLoading = false;
+    private String API_sort, API_search;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
+        setContentView(R.layout.activity_datasensor);
         init();
 
         txtDetail = findViewById(R.id.txtDetail);
@@ -55,7 +58,28 @@ public class DataSensorActivity extends BaseActivity {
         rcvDetail.setVerticalScrollBarEnabled(false);
         rcvDetail.setAdapter(dataSensorAdapter);
 
-        loadData();
+        rcvDetail.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null) {
+                    int totalItemCount = layoutManager.getItemCount();
+                    int lastVisibleItem = layoutManager.findLastVisibleItemPosition();
+                    if (!isSearch && !isLoading && lastVisibleItem >= totalItemCount - 1) {
+                        isLoading = true;
+                        curPage++;
+                        if (!isSort) {
+                            loadData(curPage);
+                        } else {
+                            loadDataSort(curPage);
+                        }
+                    }
+                }
+            }
+        });
+
+        loadData(curPage);
 
         navbarControl();
 
@@ -80,18 +104,23 @@ public class DataSensorActivity extends BaseActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void loadData() {
+    private void loadData(int page) {
         new Thread(() -> {
             DataSensorService dataSensorService = new DataSensorService();
-            String API_GetData = "http://192.168.1.9:8000/datasensor";
-            list = dataSensorService.getDataSensor(API_GetData);
+            String API_GetData = "http://192.168.189.2:8000/datasensor?page=" + page;
+            list = dataSensorService.getDataSensor(API_GetData, page);
 
             runOnUiThread(() -> {
                 if (list != null && !list.isEmpty()) {
-                    dataSensorAdapter.setData(list);
+                    if(page == 0) {
+                        dataSensorAdapter.setData(list);
+                    } else {
+                        dataSensorAdapter.addData(list);
+                    }
                 } else {
                     Log.d("error", "No data found or failed to retrieve data.");
                 }
+                isLoading = false;
             });
         }).start();
     }
@@ -129,6 +158,7 @@ public class DataSensorActivity extends BaseActivity {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View view) {
+                isSearch = true;
                 String searchText = edtSearchData.getText().toString().trim();
                 String selectedTopic = spinner.getSelectedItem().toString();
 
@@ -140,10 +170,10 @@ public class DataSensorActivity extends BaseActivity {
                             !searchText.matches("[-+]?\\d*\\.\\d+|[-+]?\\d+")) {
                         Toast.makeText(DataSensorActivity.this, "Please enter a valid number!", Toast.LENGTH_SHORT).show();
                     }
-                    else if (selectedTopic.equals("Time") &&
-                            !searchText.matches("\\d{4}-\\d{2}-\\d{2}") &&
-                            !searchText.matches("\\d{2}:\\d{2}:\\d{2}") &&
-                            !searchText.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+                    else if (selectedTopic.equals("Time") && ! searchText.matches(".*\\d{1,2}-\\d{2}.*") && ! searchText.matches(".*\\d{1,2}-\\d{4}.*") &&
+                            !searchText.matches("\\d{4}-\\d{2}-\\d{2}") &&  ! searchText.matches(".*\\d{1,2}.*") &&
+                            !searchText.matches("\\d{2}:\\d{2}:\\d{2}") &&  ! searchText.matches(".*\\d{1,2}:\\d{2}.*") && !searchText.matches(".*\\d{2}-\\d{4}.*") &&
+                            !searchText.matches(".*\\d{2}-\\d{2}.*") && !searchText.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
                         Toast.makeText(DataSensorActivity.this, "Please enter the correct date/time format!", Toast.LENGTH_SHORT).show();
                     } else {
                         solveSearchData(searchText, selectedTopic);
@@ -154,15 +184,18 @@ public class DataSensorActivity extends BaseActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void solveGetDataSearch(String API, String input) {
+    private void loadDataSearch(String input) {
         new Thread(() -> {
             DataSensorService dataSensorService = new DataSensorService();
-            List<DataSensor> listGet = dataSensorService.getBySearch(API, input);
+            List<DataSensor> listGet = dataSensorService.getBySearch(API_search, input);
 
             runOnUiThread(() -> {
                 if (listGet != null && !listGet.isEmpty()) {
                     dataSensorAdapter.setData(listGet);
+                    Toast.makeText(DataSensorActivity.this, "Successful search!", Toast.LENGTH_SHORT).show();
                 } else {
+                    dataSensorAdapter.setData(listGet);
+                    Toast.makeText(DataSensorActivity.this, "No data found or failed to retrieve data!", Toast.LENGTH_SHORT).show();
                     Log.d("error", "No data found or failed to retrieve data.");
                 }
             });
@@ -171,40 +204,46 @@ public class DataSensorActivity extends BaseActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void solveSearchData(String searchText, String selectedItem) {
+        String apiUrl = "http://192.168.189.2:8000/datasensor";
 
         if (selectedItem.equals("Temp")) {
-            String API_SearchTemp = "http://192.168.1.9:8000/datasensor/searchTemp?temp=";
-            solveGetDataSearch(API_SearchTemp, searchText);
+            API_search = apiUrl + "/searchTemp?temp=";
+            loadDataSearch(searchText);
         }
 
         if(selectedItem.equals("Humid")) {
-            String API_SearchHumid = "http://192.168.1.9:8000/datasensor/searchHumid?humid=";
-            solveGetDataSearch(API_SearchHumid, searchText);
+            API_search = apiUrl + "/searchHumid?humid=";
+            loadDataSearch(searchText);
         }
 
         if(selectedItem.equals("Light")) {
-            String API_SearchLight = "http://192.168.1.9:8000/datasensor/searchLight?light=";
-            solveGetDataSearch(API_SearchLight, searchText);
+            API_search = apiUrl + "/searchLight?light=";
+            loadDataSearch(searchText);
         }
 
         if(selectedItem.equals("Time")) {
-            String API_SearchTime = "http://192.168.1.9:8000/datasensor/searchTime?time=";
-            solveGetDataSearch(API_SearchTime, searchText);
+            API_search = apiUrl +  "/searchTime?time=";
+            loadDataSearch(searchText);
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void solveGetDataSort(String API) {
+    private void loadDataSort(int page) {
         new Thread(() -> {
             DataSensorService dataSensorService = new DataSensorService();
-            List<DataSensor> listGet = dataSensorService.getDataSensor(API);
+            List<DataSensor> listGet = dataSensorService.getDataSensor(API_sort+ "?page=" + page, page);
 
             runOnUiThread(() -> {
                 if (listGet != null && !listGet.isEmpty()) {
-                    dataSensorAdapter.setData(listGet);
+                    if(page == 0) {
+                        dataSensorAdapter.setData(listGet);
+                    } else {
+                        dataSensorAdapter.addData(listGet);
+                    }
                 } else {
                     Log.d("error", "No data found or failed to retrieve data.");
                 }
+                isLoading = false;
             });
         }).start();
     }
@@ -223,28 +262,40 @@ public class DataSensorActivity extends BaseActivity {
                     @RequiresApi(api = Build.VERSION_CODES.O)
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
+                        curPage = 0;
+                        isSort = true;
+                        String apiUrl = "http://192.168.189.2:8000/datasensor";
+
                         switch (item.getItemId()) {
                             case 0:
                                 if (type == 1) {
-                                    solveGetDataSort("http://192.168.1.9:8000/datasensor/sortTemp/increase");
+                                    API_sort = apiUrl + "/sortTemp/increase";
+                                    loadDataSort(curPage);
                                 } else if (type == 2) {
-                                    solveGetDataSort("http://192.168.1.9:8000/datasensor/sortHumid/increase");
+                                    API_sort = apiUrl + "/sortHumid/increase";
+                                    loadDataSort(curPage);
                                 } else if (type == 3) {
-                                    solveGetDataSort("http://192.168.1.9:8000/datasensor/sortLight/increase");
+                                    API_sort = apiUrl + "/sortLight/increase";
+                                    loadDataSort(curPage);
                                 } else if (type == 4) {
-                                    solveGetDataSort("http://192.168.1.9:8000/datasensor/sortTime/increase");
+                                    API_sort = apiUrl + "/sortTime/increase";
+                                    loadDataSort(curPage);
                                 }
                                 break;
 
                             case 1:
                                 if (type == 1) {
-                                    solveGetDataSort("http://192.168.1.9:8000/datasensor/sortTemp/decrease");
+                                    API_sort = apiUrl + "/sortTemp/decrease";
+                                    loadDataSort(curPage);
                                 } else if (type == 2) {
-                                    solveGetDataSort("http://192.168.1.9:8000/datasensor/sortHumid/decrease");
+                                    API_sort = apiUrl + "/sortHumid/decrease";
+                                    loadDataSort(curPage);
                                 } else if (type == 3) {
-                                    solveGetDataSort("http://192.168.1.9:8000/datasensor/sortLight/decrease");
+                                    API_sort = apiUrl + "/sortLight/decrease";
+                                    loadDataSort(curPage);
                                 } else if (type == 4) {
-                                    solveGetDataSort("http://1192.168.1.9:8000/datasensor/sortTime/decrease");
+                                    API_sort = apiUrl + "/sortTime/decrease";
+                                    loadDataSort(curPage);
                                 }
                                 break;
 
